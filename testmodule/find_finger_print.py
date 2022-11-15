@@ -1,6 +1,10 @@
-import serial
+import time
+
+from sqlite3db import FPAttendanceSystemDB
+import mark_attendance
 
 import adafruit_fingerprint
+import serial
 
 uart = serial.Serial("/dev/ttyS0", baudrate=57600, timeout=1)
 finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
@@ -38,5 +42,9 @@ while True:
 
     if get_fingerprint():
         print("Detected #", finger.finger_id, "with confidence", finger.confidence)
+        mark_attendance.get_finger_id(finger.finger_id)
+        time.sleep(2)
+        # fp_att = FPAttendanceSystemDB()
+        # fp_att.select_registered_fp(finger.finger_id)
     else:
         print("Finger not found")

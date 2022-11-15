@@ -4,7 +4,7 @@ import serial
 
 import adafruit_fingerprint
 
-import sqlite3db
+from sqlite3db import FPAttendanceSystemDB
 
 # import board
 # uart = busio.UART(board.TX, board.RX, baudrate=57600)
@@ -19,6 +19,8 @@ uart = serial.Serial("/dev/ttyS0", baudrate=57600, timeout=1)
 # uart = serial.Serial("/dev/ttyAMA0", baudrate=57600, timeout=1)
 
 finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
+
+fp_att = FPAttendanceSystemDB()
 
 
 def enroll_finger(location):
@@ -79,11 +81,11 @@ def enroll_finger(location):
     print("Storing model #%d..." % location, end="")
     i = finger.store_model(location)
     p_name = input("Enter your name: ")
-    sqlite3db.insert_data(p_name, location, datetime.datetime.now())
     print("i is: ", location)
     if i == adafruit_fingerprint.OK:
         print("Stored")
-        sqlite3db.show_record()
+        fp_att.insert_data(p_name, datetime.datetime.now(), location)
+        # fp_att.select_registered_fp(location)
     else:
         if i == adafruit_fingerprint.BADLOCATION:
             print("Bad storage location")
