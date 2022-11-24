@@ -1,3 +1,4 @@
 adafruit-circuitpython-fingerprint
 Pillow
 pyserial
+requests

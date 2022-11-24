@@ -2,10 +2,13 @@ import datetime
 import time
 import serial
 
+import requests
 import adafruit_fingerprint
 
 from sqlite3db import FPAttendanceSystemDB
 
+api_register_url = "http://192.168.1.25:8000/api/register/"
+delete_finger_api = "http://192.168.1.25:8000/api/registerdeletedata/"
 # import board
 # uart = busio.UART(board.TX, board.RX, baudrate=57600)
 
@@ -84,7 +87,18 @@ def enroll_finger(location):
     print("i is: ", location)
     if i == adafruit_fingerprint.OK:
         print("Stored")
-        fp_att.insert_data(p_name, datetime.datetime.now(), location)
+        now = datetime.datetime.now()
+        register_data = {"personName": p_name, "fpid": location, "joiningdatetime": now}
+
+        response = requests.post(api_register_url, register_data)
+
+        print(response.status_code)
+
+        if response.status_code == 201:
+            fp_att.insert_data(p_name, now, location)
+            print("finger registered successfully in db")
+        elif requests.exceptions.HTTPError:
+            print(response)
         # fp_att.select_registered_fp(location)
     else:
         if i == adafruit_fingerprint.BADLOCATION:
@@ -105,6 +119,7 @@ def get_num(max_number):
     while (i > max_number - 1) or (i < 0):
         try:
             i = int(input("Enter ID # from 0-{}: ".format(max_number - 1)))
+
         except ValueError:
             pass
     return i
@@ -136,7 +151,13 @@ while True:
     if c == "e":
         enroll_finger(get_num(finger.library_size))
     elif c == "d":
-        if finger.delete_model(get_num(finger.library_size)) == adafruit_fingerprint.OK:
-            print("Deleted!")
-        else:
-            print("Failed to delete")
+        f_id = get_num(finger.library_size)
+        response = requests.delete(delete_finger_api+str(f_id)+"/")
+        print("response delete", response, f_id)
+        if response.status_code == 200:
+            print("response in 200")
+            fp_att.delete_registered_person(f_id)
+            if finger.delete_model(f_id) == adafruit_fingerprint.OK:
+                print("Deleted!")
+            else:
+                print("Failed to delete")

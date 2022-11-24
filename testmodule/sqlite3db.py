@@ -82,6 +82,20 @@ class FPAttendanceSystemDB:
         except sqlite3.Error as error:
             print("Error while working with SQLite", error)
 
+    def delete_registered_person(self, fp_id):
+        try:
+            cursor = self.sqliteConnection.cursor()
+
+            sqlite_delete_person_query = '''DELETE FROM register_fp WHERE image_id = ?'''
+            cursor.execute(sqlite_delete_person_query, (fp_id,))
+            self.sqliteConnection.commit()
+            print(fp_id, "deleted!")
+
+            cursor.close()
+
+        except sqlite3.Error as error:
+            print("Error while creating a sqlite table", error)
+
     def attendance_table(self):
         try:
             # sqliteConnection = sqlite3.connect('SQLite_Python.db')
@@ -214,7 +228,7 @@ class FPAttendanceSystemDB:
         except sqlite3.Error as error:
             print("Error while working with SQLite", error)
 
-    def update_checkout_status(self, checkout_status, fp_id, cur_date):
+    def update_checkout_status(self, checkout_status, fp_id, checkout_time, cur_date):
         try:
             # sqliteConnection = sqlite3.connect('SQLite_Python.db')
             cursor = self.sqliteConnection.cursor()
@@ -222,7 +236,7 @@ class FPAttendanceSystemDB:
 
             cursor.execute(
                 """UPDATE fp_att SET exit_status = ?, checkout_time = ? WHERE (fp_id, cur_date) in (values(?, ?))""",
-                (checkout_status, datetime.datetime.now(), fp_id, cur_date))
+                (checkout_status, checkout_time, fp_id, cur_date))
             # row = cursor.fetchone()
             # for row in rows:
             #     print(row)
@@ -235,7 +249,7 @@ class FPAttendanceSystemDB:
             print("Error while working with SQLite", error)
 
 # att = FPAttendanceSystemDB()
-# att.insert_data('AR', datetime.datetime.now(), 1)
+# att.insert_data('Khan sahb', datetime.datetime.now(), 7)
 # att.select_registered_fp(1)
 # att.select_registered_fp(2)
 # att.select_registered_fp(3)
